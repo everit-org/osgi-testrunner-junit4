@@ -103,10 +103,6 @@ public class ExtendedResult {
         return runCount;
     }
 
-    public long getStartTime() {
-        return startTime;
-    }
-
     /**
      * Getting the amount of time the tests were running.
      * 
@@ -118,6 +114,10 @@ public class ExtendedResult {
         } else {
             return finishTime.longValue() - startTime;
         }
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 
     public List<FlowTestCaseResult> getTestCaseResults() {

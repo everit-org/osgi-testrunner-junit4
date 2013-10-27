@@ -27,14 +27,14 @@ public class FlowTestCaseResult {
 
     private String className;
 
-    private String methodName;
-
     private Throwable failure;
 
     /**
      * The time the TestCase stopped to run.
      */
     private Long finishTime;
+
+    private String methodName;
 
     /**
      * The starting time of the TestCase.
@@ -47,7 +47,7 @@ public class FlowTestCaseResult {
      * @param startTime
      *            The time when the TestCase was started.
      */
-    public FlowTestCaseResult(String className, String methodName, final Long startTime) {
+    public FlowTestCaseResult(final String className, final String methodName, final Long startTime) {
         this.className = className;
         this.methodName = methodName;
         this.startTime = startTime;
@@ -60,12 +60,20 @@ public class FlowTestCaseResult {
         finishTime = new Date().getTime();
     }
 
+    public String getClassName() {
+        return className;
+    }
+
     public Throwable getFailure() {
         return failure;
     }
 
     public Long getFinishTime() {
         return finishTime;
+    }
+
+    public String getMethodName() {
+        return methodName;
     }
 
     /**
@@ -85,15 +93,7 @@ public class FlowTestCaseResult {
         return startTime;
     }
 
-    public String getClassName() {
-        return className;
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-    
-    public void setFailure(Throwable failure) {
+    public void setFailure(final Throwable failure) {
         this.failure = failure;
     }
 }

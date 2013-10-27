@@ -28,10 +28,6 @@ import java.util.List;
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
 import org.everit.osgi.dev.testrunner.engine.TestEngine;
-import org.everit.osgi.dev.testrunner.junit4.internal.BlockJUnit4ObjectRunner;
-import org.everit.osgi.dev.testrunner.junit4.internal.ExtendedResult;
-import org.everit.osgi.dev.testrunner.junit4.internal.ExtendedResultListener;
-import org.everit.osgi.dev.testrunner.junit4.internal.FlowTestCaseResult;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.osgi.framework.BundleContext;
@@ -65,6 +61,7 @@ public class Junit4TestRunner implements TestEngine {
         this.bundleContext = bundleContext;
     }
 
+    @Override
     public List<TestClassResult> runTest(final ServiceReference<Object> reference) {
         LOGGER.info("Test OSGI Service will be run by JUnit: " + reference.toString());
         List<TestClassResult> result = new ArrayList<TestClassResult>();

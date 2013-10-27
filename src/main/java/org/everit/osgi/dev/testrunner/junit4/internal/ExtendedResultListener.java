@@ -43,7 +43,8 @@ public class ExtendedResultListener extends RunListener {
     /**
      * The result of each test cases by their {@link Description}s.
      */
-    private Map<Description, FlowTestCaseResult> testCaseResults = new ConcurrentHashMap<Description, FlowTestCaseResult>();
+    private Map<Description, FlowTestCaseResult> testCaseResults =
+            new ConcurrentHashMap<Description, FlowTestCaseResult>();
 
     public ExtendedResult getResult() {
         return result;
