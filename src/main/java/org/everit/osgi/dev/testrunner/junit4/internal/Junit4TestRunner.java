@@ -28,6 +28,8 @@ import java.util.List;
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
 import org.everit.osgi.dev.testrunner.engine.TestEngine;
+import org.junit.runner.manipulation.Filter;
+import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.osgi.framework.BundleContext;
@@ -62,27 +64,34 @@ public class Junit4TestRunner implements TestEngine {
     }
 
     @Override
-    public List<TestClassResult> runTest(final ServiceReference<Object> reference) {
+    public List<TestClassResult> runTest(final ServiceReference<Object> reference, boolean developmentMode) {
         LOGGER.info("Test OSGI Service will be run by JUnit: " + reference.toString());
         List<TestClassResult> result = new ArrayList<TestClassResult>();
         try {
-            Object testIdObject = reference.getProperty("osgitest.id");
-            String testId = (testIdObject == null) ? null : testIdObject.toString();
             Object service = bundleContext.getService(reference);
             String[] klassNames = (String[]) reference.getProperty(Constants.OBJECTCLASS);
             if (klassNames == null) {
                 LOGGER.error("Cannot load interface names for Junit service");
                 return Collections.emptyList();
             }
+            Filter developmentModeFilter = null;
+            if (developmentMode) {
+                developmentModeFilter = new DevelopmentModeFilter();
+            }
             for (String klassName : klassNames) {
-                String testUniqueName = klassName;
-                if (testId != null) {
-                    testUniqueName += "_" + testId;
-                }
+
                 try {
                     Class<?> klass = reference.getBundle().loadClass(klassName);
 
                     BlockJUnit4ObjectRunner runner = new BlockJUnit4ObjectRunner(klass, service);
+                    if (developmentModeFilter != null) {
+                        try {
+                            runner.filter(developmentModeFilter);
+                        } catch (NoTestsRemainException e) {
+                            LOGGER.info("Skipping all methods from class " + klass + " due to development mode.");
+                        }
+                    }
+
                     RunNotifier notifier = new RunNotifier();
                     ExtendedResultListener extendedResultListener = new ExtendedResultListener();
                     notifier.addListener(extendedResultListener);
@@ -106,7 +115,9 @@ public class Junit4TestRunner implements TestEngine {
                 } catch (InitializationError e) {
                     LOGGER.error("Could not initialize Junit runner", e);
                 } catch (ClassNotFoundException e) {
-                    LOGGER.error("Could not load the class of the test: " + testUniqueName, e);
+                    Object testIdObject =
+                            reference.getProperty(org.everit.osgi.dev.testrunner.Constants.SERVICE_PROPERTY_TEST_ID);
+                    LOGGER.error("Could not load the class of the test: " + testIdObject, e);
                 }
             }
         } finally {
