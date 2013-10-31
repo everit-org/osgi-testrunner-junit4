@@ -29,7 +29,13 @@ import org.junit.runner.manipulation.Filter;
 public class DevelopmentModeFilter extends Filter {
 
     @Override
-    public boolean shouldRun(Description description) {
+    public String describe() {
+        return "In case the development mode flag is true, a method annotated with @Test will run only if the "
+                + "@TestMethodInDevelopmentMode is present or the class is annotated with @TestClassInDevelopmentMode";
+    }
+
+    @Override
+    public boolean shouldRun(final Description description) {
         boolean result = false;
         TestMethodInDevelopmentMode testMethodInDevelopmentModeAnnotation =
                 description.getAnnotation(TestMethodInDevelopmentMode.class);
@@ -40,19 +46,13 @@ public class DevelopmentModeFilter extends Filter {
             Class<?> testClass = description.getTestClass();
             TestClassInDevelopmentMode testClassInDevelopmentModeAnnotation =
                     testClass.getAnnotation(TestClassInDevelopmentMode.class);
-            
+
             if (testClassInDevelopmentModeAnnotation != null) {
                 result = true;
             }
         }
 
         return result;
-    }
-
-    @Override
-    public String describe() {
-        return "In case the development mode flag is true, a method annotated with @Test will run only if the "
-                + "@TestMethodInDevelopmentMode is present or the class is annotated with @TestClassInDevelopmentMode";
     }
 
 }

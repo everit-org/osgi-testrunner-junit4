@@ -64,7 +64,7 @@ public class Junit4TestRunner implements TestEngine {
     }
 
     @Override
-    public List<TestClassResult> runTest(final ServiceReference<Object> reference, boolean developmentMode) {
+    public List<TestClassResult> runTest(final ServiceReference<Object> reference, final boolean developmentMode) {
         LOGGER.info("Test OSGI Service will be run by JUnit: " + reference.toString());
         List<TestClassResult> result = new ArrayList<TestClassResult>();
         try {
