@@ -35,7 +35,7 @@ public class JUnit4TestEngineActivator implements BundleActivator {
 
     @Override
     public void start(final BundleContext context) throws Exception {
-        Junit4TestRunner junit4TestRunner = new Junit4TestRunner(context);
+        Junit4TestEngine junit4TestRunner = new Junit4TestEngine(context);
         Hashtable<String, Object> serviceProperties = new Hashtable<String, Object>();
         serviceProperties.put(Constants.SERVICE_PROPERTY_TESTRUNNER_ENGINE_TYPE, "junit4");
         junit4TestRunnerSR = context.registerService(TestEngine.class, junit4TestRunner, serviceProperties);

@@ -22,6 +22,7 @@ package org.everit.osgi.dev.testrunner.junit4.internal;
  */
 
 import org.everit.osgi.dev.testrunner.TestClassInDevelopmentMode;
+import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.everit.osgi.dev.testrunner.TestMethodInDevelopmentMode;
 import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
@@ -40,14 +41,16 @@ public class DevelopmentModeFilter extends Filter {
         TestMethodInDevelopmentMode testMethodInDevelopmentModeAnnotation =
                 description.getAnnotation(TestMethodInDevelopmentMode.class);
 
-        if (testMethodInDevelopmentModeAnnotation != null) {
+        if (testMethodInDevelopmentModeAnnotation != null
+                || description.getAnnotation(TestDuringDevelopment.class) != null) {
             result = true;
         } else {
             Class<?> testClass = description.getTestClass();
             TestClassInDevelopmentMode testClassInDevelopmentModeAnnotation =
                     testClass.getAnnotation(TestClassInDevelopmentMode.class);
 
-            if (testClassInDevelopmentModeAnnotation != null) {
+            if (testClassInDevelopmentModeAnnotation != null
+                    || testClass.getAnnotation(TestDuringDevelopment.class) != null) {
                 result = true;
             }
         }

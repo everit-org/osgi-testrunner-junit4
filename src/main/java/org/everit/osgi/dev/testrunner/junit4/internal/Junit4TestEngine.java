@@ -41,12 +41,12 @@ import org.slf4j.LoggerFactory;
 /**
  * Runs all JUnit4 based tests that are provided as a service in this OSGI container.
  */
-public class Junit4TestRunner implements TestEngine {
+public class Junit4TestEngine implements TestEngine {
 
     /**
      * The logger of the class.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(Junit4TestRunner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Junit4TestEngine.class);
 
     /**
      * The bundle context of this bundle to be able to get the Junit test services.
@@ -59,7 +59,7 @@ public class Junit4TestRunner implements TestEngine {
      * @param bundleContext
      *            The bundle context of this bundle to be able to get the Junit test services.
      */
-    public Junit4TestRunner(final BundleContext bundleContext) {
+    public Junit4TestEngine(final BundleContext bundleContext) {
         this.bundleContext = bundleContext;
     }
 
