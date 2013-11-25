@@ -24,6 +24,8 @@ package org.everit.osgi.dev.testrunner.junit4.internal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
@@ -35,8 +37,6 @@ import org.junit.runners.model.InitializationError;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Runs all JUnit4 based tests that are provided as a service in this OSGI container.
@@ -46,7 +46,7 @@ public class Junit4TestEngine implements TestEngine {
     /**
      * The logger of the class.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(Junit4TestEngine.class);
+    private static final Logger LOGGER = Logger.getLogger(Junit4TestEngine.class.getName());
 
     /**
      * The bundle context of this bundle to be able to get the Junit test services.
@@ -71,7 +71,7 @@ public class Junit4TestEngine implements TestEngine {
             Object service = bundleContext.getService(reference);
             String[] klassNames = (String[]) reference.getProperty(Constants.OBJECTCLASS);
             if (klassNames == null) {
-                LOGGER.error("Cannot load interface names for Junit service");
+                LOGGER.severe("Cannot load interface names for Junit service");
                 return Collections.emptyList();
             }
             Filter developmentModeFilter = null;
@@ -88,7 +88,10 @@ public class Junit4TestEngine implements TestEngine {
                         try {
                             runner.filter(developmentModeFilter);
                         } catch (NoTestsRemainException e) {
-                            LOGGER.info("Skipping all methods from class " + klass + " due to development mode.");
+                            LOGGER.warning("Skipping all methods from class "
+                                    + klass
+                                    + " due to development mode. To run the tests in development mode, annotate or "
+                                    + "methods or the class with @TestDuringDevelopment");
                         }
                     }
 
@@ -113,11 +116,11 @@ public class Junit4TestEngine implements TestEngine {
                             .getErrorCount(), extendedResult.getFailureCount(), extendedResult.getIgnoreCount(),
                             extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
                 } catch (InitializationError e) {
-                    LOGGER.error("Could not initialize Junit runner", e);
+                    LOGGER.log(Level.SEVERE, "Could not initialize Junit runner", e);
                 } catch (ClassNotFoundException e) {
                     Object testIdObject =
                             reference.getProperty(org.everit.osgi.dev.testrunner.Constants.SERVICE_PROPERTY_TEST_ID);
-                    LOGGER.error("Could not load the class of the test: " + testIdObject, e);
+                    LOGGER.log(Level.SEVERE, "Could not load the class of the test: " + testIdObject, e);
                 }
             }
         } finally {
