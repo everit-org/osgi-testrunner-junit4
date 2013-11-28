@@ -25,8 +25,14 @@ import java.util.Date;
 
 public class FlowTestCaseResult {
 
+    /**
+     * The name of the class that contained the test methods.
+     */
     private String className;
 
+    /**
+     * An exception that was thrown and not caughed by the test method.
+     */
     private Throwable failure;
 
     /**
@@ -34,6 +40,9 @@ public class FlowTestCaseResult {
      */
     private Long finishTime;
 
+    /**
+     * The name of the test method.
+     */
     private String methodName;
 
     /**
@@ -45,7 +54,11 @@ public class FlowTestCaseResult {
      * Constructor of the class that sets the properties that should be available already.
      * 
      * @param startTime
-     *            The time when the TestCase was started.
+     *            See {@link #startTime}.
+     * @param className
+     *            See {@link #className}.
+     * @param methodName
+     *            See {@link #methodName}.
      */
     public FlowTestCaseResult(final String className, final String methodName, final Long startTime) {
         this.className = className;

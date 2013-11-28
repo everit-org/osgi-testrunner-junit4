@@ -25,6 +25,9 @@ import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.junit.runner.Description;
 import org.junit.runner.manipulation.Filter;
 
+/**
+ * A filter that allows to run functions annotated with {@link TestDuringDevelopment}.
+ */
 public class DevelopmentModeFilter extends Filter {
 
     @Override

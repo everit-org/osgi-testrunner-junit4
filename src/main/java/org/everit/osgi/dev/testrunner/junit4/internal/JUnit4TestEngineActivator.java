@@ -29,8 +29,14 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
+/**
+ * The activator of the bundle that registers the JUnit 4 test engine.
+ */
 public class JUnit4TestEngineActivator implements BundleActivator {
 
+    /**
+     * Service registration of JUnit 4 test engine.
+     */
     private ServiceRegistration<TestEngine> junit4TestRunnerSR;
 
     @Override
