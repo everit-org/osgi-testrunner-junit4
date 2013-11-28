@@ -31,7 +31,7 @@
     </parent>
     <groupId>org.everit.osgi.dev.testrunner</groupId>
     <artifactId>org.everit.osgi.dev.testrunner.junit4</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0-alpha1</version>
     <packaging>bundle</packaging>
     <name>Junit4 Test runner engine</name>
     <description>Extension of osgi-testrunner that allows to run Junit4 based tests. The tests have to be registered with the osgi.testEngine=junit4 service property.</description>
@@ -90,7 +90,7 @@
         <dependency>
             <groupId>org.everit.osgi.dev</groupId>
             <artifactId>org.everit.osgi.dev.testrunner</artifactId>
-            <version>4.0.0-SNAPSHOT</version>
+            <version>4.0.0-alpha1</version>
         </dependency>
     </dependencies>
     <repositories>
