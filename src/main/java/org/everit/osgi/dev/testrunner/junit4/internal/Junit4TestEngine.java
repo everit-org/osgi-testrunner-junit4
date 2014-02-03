@@ -1,25 +1,20 @@
-package org.everit.osgi.dev.testrunner.junit4.internal;
-
-/*
- * Copyright (c) 2011, Everit Kft.
+/**
+ * This file is part of Junit4 TestRunner Engine.
  *
- * All rights reserved.
+ * Junit4 TestRunner Engine is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
+ * Junit4 TestRunner Engine is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- * MA 02110-1301  USA
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with Junit4 TestRunner Engine.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.everit.osgi.dev.testrunner.junit4.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,6 +22,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.everit.osgi.dev.testrunner.TestRunnerConstants;
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
 import org.everit.osgi.dev.testrunner.engine.TestEngine;
@@ -119,7 +115,7 @@ public class Junit4TestEngine implements TestEngine {
                     LOGGER.log(Level.SEVERE, "Could not initialize Junit runner", e);
                 } catch (ClassNotFoundException e) {
                     Object testIdObject =
-                            reference.getProperty(org.everit.osgi.dev.testrunner.Constants.SERVICE_PROPERTY_TEST_ID);
+                            reference.getProperty(TestRunnerConstants.SERVICE_PROPERTY_TEST_ID);
                     LOGGER.log(Level.SEVERE, "Could not load the class of the test: " + testIdObject, e);
                 }
             }
