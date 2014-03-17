@@ -28,7 +28,7 @@
 
   <groupId>org.everit.osgi.dev</groupId>
   <artifactId>org.everit.osgi.dev.testrunner.junit4</artifactId>
-  <version>3.0.1</version>
+  <version>3.0.3</version>
 
   <packaging>bundle</packaging>
 
@@ -103,7 +103,7 @@
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.testrunner</artifactId>
-      <version>4.0.1</version>
+      <version>4.0.3</version>
     </dependency>
   </dependencies>
 </project>
