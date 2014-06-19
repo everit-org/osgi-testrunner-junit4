@@ -18,18 +18,23 @@ package org.everit.osgi.dev.testrunner.junit4.internal;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
 import org.everit.osgi.dev.testrunner.TestRunnerConstants;
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
 import org.everit.osgi.dev.testrunner.engine.TestEngine;
+import org.junit.Test;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
 import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
+import org.junit.runners.model.TestClass;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
@@ -59,6 +64,26 @@ public class Junit4TestEngine implements TestEngine {
         this.bundleContext = bundleContext;
     }
 
+    private List<TestCaseResult> createFailureTestCaseResults(final Class<?> klass, final boolean developmentMode,
+            final long now) {
+        TestClass testClass = new TestClass(klass);
+        boolean allMethods = (!developmentMode) || (klass.getAnnotation(TestDuringDevelopment.class) != null);
+        List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
+        List<TestCaseResult> result = new ArrayList<TestCaseResult>();
+        for (FrameworkMethod frameworkMethod : annotatedMethods) {
+            if (allMethods || frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null) {
+                Exception exception = new Exception(
+                        "Service object behind the reference was null. We experienced this when the activate"
+                                + " method of a DS component threw an exception but there can be other causes. Please"
+                                + " check the log! Please note, that in Equinox sometimes such exceptions are"
+                                + " written only into different files in the configuration folder.");
+                exception.setStackTrace(new StackTraceElement[0]);
+                result.add(new TestCaseResult(frameworkMethod.getName(), now, now, exception));
+            }
+        }
+        return result;
+    }
+
     @Override
     public List<TestClassResult> runTest(final ServiceReference<Object> reference, final boolean developmentMode) {
         LOGGER.info("Test OSGI Service will be run by JUnit: " + reference.toString());
@@ -79,38 +104,45 @@ public class Junit4TestEngine implements TestEngine {
                 try {
                     Class<?> klass = reference.getBundle().loadClass(klassName);
 
-                    BlockJUnit4ObjectRunner runner = new BlockJUnit4ObjectRunner(klass, service);
-                    if (developmentModeFilter != null) {
-                        try {
-                            runner.filter(developmentModeFilter);
-                        } catch (NoTestsRemainException e) {
-                            LOGGER.warning("Skipping all methods from class "
-                                    + klass
-                                    + " due to development mode. To run the tests in development mode, annotate or "
-                                    + "methods or the class with @TestDuringDevelopment");
+                    if (service == null) {
+                        long now = new Date().getTime();
+                        List<TestCaseResult> testCases = createFailureTestCaseResults(klass, developmentMode, now);
+                        result.add(new TestClassResult(klass.getName(), 0, 0, testCases.size(), 0, now, now,
+                                testCases));
+                    } else {
+                        BlockJUnit4ObjectRunner runner = new BlockJUnit4ObjectRunner(klass, service);
+                        if (developmentModeFilter != null) {
+                            try {
+                                runner.filter(developmentModeFilter);
+                            } catch (NoTestsRemainException e) {
+                                LOGGER.warning("Skipping all methods from class "
+                                        + klass
+                                        + " due to development mode. To run the tests in development mode, annotate or "
+                                        + "methods or the class with @TestDuringDevelopment");
+                            }
                         }
+
+                        RunNotifier notifier = new RunNotifier();
+                        ExtendedResultListener extendedResultListener = new ExtendedResultListener();
+                        notifier.addListener(extendedResultListener);
+                        runner.run(notifier);
+                        ExtendedResult extendedResult = extendedResultListener.getResult();
+                        extendedResult.finishRunning();
+
+                        List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+
+                        for (FlowTestCaseResult flowTestCaseResult : extendedResult.getTestCaseResults()) {
+                            TestCaseResult testCaseResult =
+                                    new TestCaseResult(flowTestCaseResult.getMethodName(),
+                                            flowTestCaseResult.getStartTime(), flowTestCaseResult.getFinishTime(),
+                                            flowTestCaseResult.getFailure());
+                            testCaseResults.add(testCaseResult);
+                        }
+
+                        result.add(new TestClassResult(klassName, extendedResult.getRunCount(), extendedResult
+                                .getErrorCount(), extendedResult.getFailureCount(), extendedResult.getIgnoreCount(),
+                                extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
                     }
-
-                    RunNotifier notifier = new RunNotifier();
-                    ExtendedResultListener extendedResultListener = new ExtendedResultListener();
-                    notifier.addListener(extendedResultListener);
-                    runner.run(notifier);
-                    ExtendedResult extendedResult = extendedResultListener.getResult();
-                    extendedResult.finishRunning();
-
-                    List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
-
-                    for (FlowTestCaseResult flowTestCaseResult : extendedResult.getTestCaseResults()) {
-                        TestCaseResult testCaseResult =
-                                new TestCaseResult(flowTestCaseResult.getMethodName(),
-                                        flowTestCaseResult.getStartTime(), flowTestCaseResult.getFinishTime(),
-                                        flowTestCaseResult.getFailure());
-                        testCaseResults.add(testCaseResult);
-                    }
-
-                    result.add(new TestClassResult(klassName, extendedResult.getRunCount(), extendedResult
-                            .getErrorCount(), extendedResult.getFailureCount(), extendedResult.getIgnoreCount(),
-                            extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
                 } catch (InitializationError e) {
                     LOGGER.log(Level.SEVERE, "Could not initialize Junit runner", e);
                 } catch (ClassNotFoundException e) {
