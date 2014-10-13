@@ -28,7 +28,7 @@
 
   <groupId>org.everit.osgi.dev</groupId>
   <artifactId>org.everit.osgi.dev.testrunner.junit4</artifactId>
-  <version>3.0.4-SNAPSHOT</version>
+  <version>3.0.4</version>
 
   <packaging>bundle</packaging>
 

@@ -18,6 +18,7 @@ package org.everit.osgi.dev.testrunner.junit4.internal;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -112,48 +113,44 @@ public class Junit4TestEngine implements TestEngine {
                         result.add(new TestClassResult(klass.getName(), 0, 0, testCases.size(), 0, now, now,
                                 testCases));
                     } else {
-                        BlockJUnit4ObjectRunner runner = new BlockJUnit4ObjectRunner(klass, service);
-                        if (developmentModeFilter != null) {
-                            try {
-                                runner.filter(developmentModeFilter);
-                            } catch (NoTestsRemainException e) {
-                                LOGGER.warning("Skipping all methods from class "
-                                        + klass
-                                        + " due to development mode. To run the tests in development mode, annotate or "
-                                        + "methods or the class with @TestDuringDevelopment");
+                        try {
+                            BlockJUnit4ObjectRunner runner = new BlockJUnit4ObjectRunner(klass, service);
+                            if (developmentModeFilter != null) {
+                                try {
+                                    runner.filter(developmentModeFilter);
+                                } catch (NoTestsRemainException e) {
+                                    LOGGER.warning("Skipping all methods from class "
+                                            + klass
+                                            + " due to development mode. To run the tests in development mode, annotate or "
+                                            + "methods or the class with @TestDuringDevelopment");
+                                }
                             }
+
+                            RunNotifier notifier = new RunNotifier();
+                            ExtendedResultListener extendedResultListener = new ExtendedResultListener();
+                            notifier.addListener(extendedResultListener);
+                            runner.run(notifier);
+                            ExtendedResult extendedResult = extendedResultListener.getResult();
+                            extendedResult.finishRunning();
+
+                            List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+
+                            for (FlowTestCaseResult flowTestCaseResult : extendedResult.getTestCaseResults()) {
+                                TestCaseResult testCaseResult =
+                                        new TestCaseResult(flowTestCaseResult.getMethodName(),
+                                                flowTestCaseResult.getStartTime(), flowTestCaseResult.getFinishTime(),
+                                                flowTestCaseResult.getFailure());
+                                testCaseResults.add(testCaseResult);
+                            }
+
+                            result.add(new TestClassResult(klassName, extendedResult.getRunCount(), extendedResult
+                                    .getErrorCount(), extendedResult.getFailureCount(),
+                                    extendedResult.getIgnoreCount(),
+                                    extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
+                        } catch (InitializationError e) {
+                            handleInitializationError(developmentMode, result, klassName, klass, e);
                         }
-
-                        RunNotifier notifier = new RunNotifier();
-                        ExtendedResultListener extendedResultListener = new ExtendedResultListener();
-                        notifier.addListener(extendedResultListener);
-                        runner.run(notifier);
-                        ExtendedResult extendedResult = extendedResultListener.getResult();
-                        extendedResult.finishRunning();
-
-                        List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
-
-                        for (FlowTestCaseResult flowTestCaseResult : extendedResult.getTestCaseResults()) {
-                            TestCaseResult testCaseResult =
-                                    new TestCaseResult(flowTestCaseResult.getMethodName(),
-                                            flowTestCaseResult.getStartTime(), flowTestCaseResult.getFinishTime(),
-                                            flowTestCaseResult.getFailure());
-                            testCaseResults.add(testCaseResult);
-                        }
-
-                        result.add(new TestClassResult(klassName, extendedResult.getRunCount(), extendedResult
-                                .getErrorCount(), extendedResult.getFailureCount(), extendedResult.getIgnoreCount(),
-                                extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
                     }
-                } catch (InitializationError e) {
-                    List<Throwable> causes = e.getCauses();
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    pw.write("Error during initialization of JUnit runner due to the following causes:\n");
-                    for (Throwable throwable : causes) {
-                        throwable.printStackTrace(pw);
-                    }
-                    LOGGER.log(Level.SEVERE, sw.toString());
                 } catch (ClassNotFoundException e) {
                     Object testIdObject =
                             reference.getProperty(TestRunnerConstants.SERVICE_PROPERTY_TEST_ID);
@@ -165,5 +162,36 @@ public class Junit4TestEngine implements TestEngine {
         }
 
         return result;
+    }
+
+    private void handleInitializationError(final boolean developmentMode, List<TestClassResult> result,
+            String klassName,
+            Class<?> klass, InitializationError e) {
+        TestClass testClass = new TestClass(klass);
+        Class<? extends Annotation> testAnnotation = null;
+        if (!developmentMode || klass.getAnnotation(TestDuringDevelopment.class) != null) {
+            testAnnotation = Test.class;
+        } else {
+            testAnnotation = TestDuringDevelopment.class;
+        }
+
+        List<Throwable> causes = e.getCauses();
+        long now = System.currentTimeMillis();
+        List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+
+        List<FrameworkMethod> testAnnotatedMethods = testClass.getAnnotatedMethods(testAnnotation);
+        TestClassResult classResult = new TestClassResult(klassName, 0, 0,
+                testAnnotatedMethods.size(), 0, now, now, testCaseResults);
+
+        result.add(classResult);
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        pw.write("Error during initialization of test class '" + klassName
+                + "':\n");
+        for (Throwable throwable : causes) {
+            throwable.printStackTrace(pw);
+        }
+        LOGGER.log(Level.SEVERE, sw.toString());
     }
 }
