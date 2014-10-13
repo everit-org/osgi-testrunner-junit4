@@ -16,6 +16,8 @@
  */
 package org.everit.osgi.dev.testrunner.junit4.internal;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -144,7 +146,14 @@ public class Junit4TestEngine implements TestEngine {
                                 extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
                     }
                 } catch (InitializationError e) {
-                    LOGGER.log(Level.SEVERE, "Could not initialize Junit runner", e);
+                    List<Throwable> causes = e.getCauses();
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    pw.write("Error during initialization of JUnit runner due to the following causes:\n");
+                    for (Throwable throwable : causes) {
+                        throwable.printStackTrace(pw);
+                    }
+                    LOGGER.log(Level.SEVERE, sw.toString());
                 } catch (ClassNotFoundException e) {
                     Object testIdObject =
                             reference.getProperty(TestRunnerConstants.SERVICE_PROPERTY_TEST_ID);
