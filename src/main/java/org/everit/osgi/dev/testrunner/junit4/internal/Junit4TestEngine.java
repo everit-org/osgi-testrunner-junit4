@@ -18,7 +18,6 @@ package org.everit.osgi.dev.testrunner.junit4.internal;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -67,7 +66,7 @@ public class Junit4TestEngine implements TestEngine {
         this.bundleContext = bundleContext;
     }
 
-    private List<TestCaseResult> createFailureTestCaseResults(final Class<?> klass, final boolean developmentMode,
+    private List<TestCaseResult> createErrorTestCaseResults(final Class<?> klass, final boolean developmentMode,
             final long now) {
         TestClass testClass = new TestClass(klass);
         boolean allMethods = (!developmentMode) || (klass.getAnnotation(TestDuringDevelopment.class) != null);
@@ -109,8 +108,8 @@ public class Junit4TestEngine implements TestEngine {
 
                     if (service == null) {
                         long now = new Date().getTime();
-                        List<TestCaseResult> testCases = createFailureTestCaseResults(klass, developmentMode, now);
-                        result.add(new TestClassResult(klass.getName(), 0, 0, testCases.size(), 0, now, now,
+                        List<TestCaseResult> testCases = createErrorTestCaseResults(klass, developmentMode, now);
+                        result.add(new TestClassResult(klass.getName(), 0, testCases.size(), 0, 0, now, now,
                                 testCases));
                     } else {
                         try {
@@ -165,23 +164,30 @@ public class Junit4TestEngine implements TestEngine {
     }
 
     private void handleInitializationError(final boolean developmentMode, List<TestClassResult> result,
-            String klassName,
-            Class<?> klass, InitializationError e) {
+            String klassName, Class<?> klass, InitializationError e) {
         TestClass testClass = new TestClass(klass);
-        Class<? extends Annotation> testAnnotation = null;
-        if (!developmentMode || klass.getAnnotation(TestDuringDevelopment.class) != null) {
-            testAnnotation = Test.class;
-        } else {
-            testAnnotation = TestDuringDevelopment.class;
-        }
+
+        boolean allMethods = (!developmentMode) || (klass.getAnnotation(TestDuringDevelopment.class) != null);
 
         List<Throwable> causes = e.getCauses();
         long now = System.currentTimeMillis();
         List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+        List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
 
-        List<FrameworkMethod> testAnnotatedMethods = testClass.getAnnotatedMethods(testAnnotation);
-        TestClassResult classResult = new TestClassResult(klassName, 0, 0,
-                testAnnotatedMethods.size(), 0, now, now, testCaseResults);
+        Exception wrapperException = new Exception("Error during initialization. See log for details");
+        wrapperException.setStackTrace(new StackTraceElement[0]);
+
+        for (FrameworkMethod frameworkMethod : annotatedMethods) {
+            if (allMethods || frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null) {
+                TestCaseResult testCaseResult = new TestCaseResult(frameworkMethod.getName(), now, now,
+                        wrapperException);
+
+                testCaseResults.add(testCaseResult);
+            }
+        }
+
+        TestClassResult classResult = new TestClassResult(klassName, 0, testCaseResults.size(),
+                0, 0, now, now, testCaseResults);
 
         result.add(classResult);
 
