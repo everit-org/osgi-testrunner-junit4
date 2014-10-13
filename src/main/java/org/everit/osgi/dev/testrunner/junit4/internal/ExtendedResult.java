@@ -63,7 +63,7 @@ public class ExtendedResult {
 
     /**
      * Constructor of the class.
-     * 
+     *
      * @param startTime
      *            The time when the test was started.
      */
@@ -100,7 +100,7 @@ public class ExtendedResult {
 
     /**
      * Getting the amount of time the tests were running.
-     * 
+     *
      * @return Current time - startTime if the test running has not finished yet or the finishTime - startTime.
      */
     public long getRunTime() {

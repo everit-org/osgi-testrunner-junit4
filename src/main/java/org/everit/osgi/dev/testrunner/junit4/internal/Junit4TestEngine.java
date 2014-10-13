@@ -58,7 +58,7 @@ public class Junit4TestEngine implements TestEngine {
 
     /**
      * Constructor.
-     * 
+     *
      * @param bundleContext
      *            The bundle context of this bundle to be able to get the Junit test services.
      */
@@ -73,7 +73,7 @@ public class Junit4TestEngine implements TestEngine {
         List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
         List<TestCaseResult> result = new ArrayList<TestCaseResult>();
         for (FrameworkMethod frameworkMethod : annotatedMethods) {
-            if (allMethods || frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null) {
+            if (allMethods || (frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null)) {
                 Exception exception = new Exception(
                         "Service object behind the reference was null. We experienced this when the activate"
                                 + " method of a DS component threw an exception but there can be other causes. Please"
@@ -84,6 +84,44 @@ public class Junit4TestEngine implements TestEngine {
             }
         }
         return result;
+    }
+
+    private void handleInitializationError(final boolean developmentMode, final List<TestClassResult> result,
+            final String klassName, final Class<?> klass, final InitializationError e) {
+        TestClass testClass = new TestClass(klass);
+
+        boolean allMethods = (!developmentMode) || (klass.getAnnotation(TestDuringDevelopment.class) != null);
+
+        List<Throwable> causes = e.getCauses();
+        long now = System.currentTimeMillis();
+        List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+        List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
+
+        Exception wrapperException = new Exception("Error during initialization. See log for details");
+        wrapperException.setStackTrace(new StackTraceElement[0]);
+
+        for (FrameworkMethod frameworkMethod : annotatedMethods) {
+            if (allMethods || (frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null)) {
+                TestCaseResult testCaseResult = new TestCaseResult(frameworkMethod.getName(), now, now,
+                        wrapperException);
+
+                testCaseResults.add(testCaseResult);
+            }
+        }
+
+        TestClassResult classResult = new TestClassResult(klassName, 0, testCaseResults.size(),
+                0, 0, now, now, testCaseResults);
+
+        result.add(classResult);
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        pw.write("Error during initialization of test class '" + klassName
+                + "':\n");
+        for (Throwable throwable : causes) {
+            throwable.printStackTrace(pw);
+        }
+        LOGGER.log(Level.SEVERE, sw.toString());
     }
 
     @Override
@@ -161,43 +199,5 @@ public class Junit4TestEngine implements TestEngine {
         }
 
         return result;
-    }
-
-    private void handleInitializationError(final boolean developmentMode, List<TestClassResult> result,
-            String klassName, Class<?> klass, InitializationError e) {
-        TestClass testClass = new TestClass(klass);
-
-        boolean allMethods = (!developmentMode) || (klass.getAnnotation(TestDuringDevelopment.class) != null);
-
-        List<Throwable> causes = e.getCauses();
-        long now = System.currentTimeMillis();
-        List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
-        List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
-
-        Exception wrapperException = new Exception("Error during initialization. See log for details");
-        wrapperException.setStackTrace(new StackTraceElement[0]);
-
-        for (FrameworkMethod frameworkMethod : annotatedMethods) {
-            if (allMethods || frameworkMethod.getAnnotation(TestDuringDevelopment.class) != null) {
-                TestCaseResult testCaseResult = new TestCaseResult(frameworkMethod.getName(), now, now,
-                        wrapperException);
-
-                testCaseResults.add(testCaseResult);
-            }
-        }
-
-        TestClassResult classResult = new TestClassResult(klassName, 0, testCaseResults.size(),
-                0, 0, now, now, testCaseResults);
-
-        result.add(classResult);
-
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        pw.write("Error during initialization of test class '" + klassName
-                + "':\n");
-        for (Throwable throwable : causes) {
-            throwable.printStackTrace(pw);
-        }
-        LOGGER.log(Level.SEVERE, sw.toString());
     }
 }

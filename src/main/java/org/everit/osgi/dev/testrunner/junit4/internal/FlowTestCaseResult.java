@@ -47,7 +47,7 @@ public class FlowTestCaseResult {
 
     /**
      * Constructor of the class that sets the properties that should be available already.
-     * 
+     *
      * @param startTime
      *            See {@link #startTime}.
      * @param className
@@ -86,7 +86,7 @@ public class FlowTestCaseResult {
 
     /**
      * Gives back the amount of time while the TestCase was running or null if the TestCase has not finished yet.
-     * 
+     *
      * @return FinishTime - StartTime.
      */
     public Long getRunningTime() {

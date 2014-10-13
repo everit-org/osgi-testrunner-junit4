@@ -47,7 +47,7 @@ public class ExtendedResultListener extends RunListener {
 
     /**
      * Handling assumption and simple failures.
-     * 
+     *
      * @param failure
      *            The failure object.
      */

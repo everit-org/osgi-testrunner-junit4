@@ -26,7 +26,7 @@ import org.junit.runners.model.InitializationError;
  * objects and getting the annotations from the specified interface the object implements. In integration tests it may
  * be necessary that we want to set up an object and add value to the properties of the object before we run tests on
  * it.
- * 
+ *
  */
 public class BlockJUnit4ObjectRunner extends BlockJUnit4ClassRunner {
 
@@ -37,7 +37,7 @@ public class BlockJUnit4ObjectRunner extends BlockJUnit4ClassRunner {
 
     /**
      * Constructor of the class.
-     * 
+     *
      * @param klass
      *            The interface or parent class of the testObject that contains the annotated functions.
      * @param testObject
@@ -52,7 +52,7 @@ public class BlockJUnit4ObjectRunner extends BlockJUnit4ClassRunner {
 
     /**
      * Simply giving back the testObject we got via the constructor.
-     * 
+     *
      * @return The value of the testObject property.
      */
     @Override
@@ -67,7 +67,7 @@ public class BlockJUnit4ObjectRunner extends BlockJUnit4ClassRunner {
     /**
      * Avoiding the validation of the constructor the test object is already instantiated and interfaces do not have
      * constructor at all.
-     * 
+     *
      * @param errors
      *            Not used.
      */
