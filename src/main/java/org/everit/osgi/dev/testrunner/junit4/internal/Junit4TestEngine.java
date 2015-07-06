@@ -180,7 +180,8 @@ public class Junit4TestEngine implements TestEngine {
                                 testCaseResults.add(testCaseResult);
                             }
 
-                            result.add(new TestClassResult(klassName, extendedResult.getRunCount(), extendedResult
+                            long runCount = extendedResult.getRunCount() + extendedResult.getIgnoreCount();
+                            result.add(new TestClassResult(klassName, runCount, extendedResult
                                     .getErrorCount(), extendedResult.getFailureCount(),
                                     extendedResult.getIgnoreCount(),
                                     extendedResult.getStartTime(), extendedResult.getFinishTime(), testCaseResults));
