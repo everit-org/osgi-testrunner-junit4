@@ -1,5 +1,5 @@
 language: java
-jdk: openjdk7
+jdk: orackejdk8
 script: mvn verify
 install: true
 sudo: false
