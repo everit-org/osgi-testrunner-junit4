@@ -25,10 +25,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.everit.osgi.dev.testrunner.TestDuringDevelopment;
-import org.everit.osgi.dev.testrunner.TestRunnerConstants;
 import org.everit.osgi.dev.testrunner.engine.TestCaseResult;
 import org.everit.osgi.dev.testrunner.engine.TestClassResult;
 import org.everit.osgi.dev.testrunner.engine.TestEngine;
+import org.everit.osgi.dev.testrunner.engine.TestExecutionContext;
 import org.junit.Test;
 import org.junit.runner.manipulation.Filter;
 import org.junit.runner.manipulation.NoTestsRemainException;
@@ -72,7 +72,7 @@ public class Junit4TestEngine implements TestEngine {
 
     List<Throwable> causes = e.getCauses();
     long now = System.currentTimeMillis();
-    List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+    List<TestCaseResult> testCaseResults = new ArrayList<>();
     List<FrameworkMethod> annotatedMethods = testClass.getAnnotatedMethods(Test.class);
 
     Exception wrapperException = new Exception("Error during initialization. See log for details");
@@ -105,10 +105,10 @@ public class Junit4TestEngine implements TestEngine {
 
   @Override
   public TestClassResult runTestsOfInstance(final Object testObject,
-      final Map<String, ?> properties) {
+      final Map<String, ?> properties, final TestExecutionContext testExecutionContext) {
 
     Filter developmentModeFilter = null;
-    if (TestRunnerConstants.IN_DEVELOPMENT_MODE) {
+    if (testExecutionContext.developmentMode) {
       developmentModeFilter = new DevelopmentModeFilter();
     }
 
@@ -134,7 +134,7 @@ public class Junit4TestEngine implements TestEngine {
       ExtendedResult extendedResult = extendedResultListener.getResult();
       extendedResult.finishRunning();
 
-      List<TestCaseResult> testCaseResults = new ArrayList<TestCaseResult>();
+      List<TestCaseResult> testCaseResults = new ArrayList<>();
 
       for (FlowTestCaseResult flowTestCaseResult : extendedResult.getTestCaseResults()) {
         TestCaseResult testCaseResult = new TestCaseResult();
@@ -157,7 +157,7 @@ public class Junit4TestEngine implements TestEngine {
       result.testCaseResults = testCaseResults;
       return result;
     } catch (InitializationError e) {
-      return handleInitializationError(TestRunnerConstants.IN_DEVELOPMENT_MODE, klass, e);
+      return handleInitializationError(testExecutionContext.developmentMode, klass, e);
     }
   }
 }
